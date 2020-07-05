@@ -9,9 +9,12 @@ import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Aspect
 @Configuration
@@ -19,9 +22,13 @@ public class Advice {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Before ("com.example.springaop.aspect.CommonPointCut.controllerCommonPoint() && args(..,request)")
-    public void beforeController(JoinPoint joinPoint, HttpServletRequest request) {
+//    @Before ("com.example.springaop.aspect.CommonPointCut.controllerCommonPoint() && args(..,request)")
+@Before ("com.example.springaop.aspect.CommonPointCut.controllerCommonPoint()")
+public void beforeController(JoinPoint joinPoint) {
+    //public void beforeController(JoinPoint joinPoint, HttpServletRequest request) {
 //        logger.info("Controller call from {}", joinPoint);
+    HttpServletRequest request =
+            ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         logger.info("Start Header Section of request ");
         logger.info("Request Type : " + request.getMethod());
         Enumeration headerNames = request.getHeaderNames();
@@ -37,7 +44,10 @@ public class Advice {
     @AfterReturning (value = "com.example.springaop.aspect.CommonPointCut.controllerCommonPoint()",
             returning = "result")
     public void afterReturning(JoinPoint joinPoint, Object result) {
+        HttpServletResponse response =
+                ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
         logger.info("After execution of Controller {} and data return {}", joinPoint, result);
+        logger.info("Response code : {}",response.getStatus());
     }
 
     @Around ("com.example.springaop.aspect.CommonPointCut.controllerCommonPoint()")
